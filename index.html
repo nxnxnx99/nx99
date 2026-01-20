@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>Nexus VS - Ultimate Edition</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+<style>
+:root {
+      --bg: #05010a;
+      --panel: #13062d;
+      --border: #3d1f7c;
+      --text: #e0e0e0;
+      --accent: #a855f7;
+      --accent-light: #d8b4fe;
+     --accent-glow: rgba(168, 85, 247, 0.6);
+     --glass: rgba(20, 10, 35, 0.7);
+}
+body {
+      margin:0;
+      background-color: var(--bg);
+     background-image:
+          linear-gradient(rgba(5, 1, 10, 0.9), rgba(5, 1, 10, 0.9)),
+          linear-gradient(to right, rgba(61, 31, 124, 0.1) 1px, transparent 1px),
+          linear-gradient(to bottom, rgba(61, 31, 124, 0.1) 1px, transparent 1px);
+     background-size: cover, 40px 40px;
+     color:var(--text);
+      font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      height:100vh;
+      display:flex;
+      flex-direction:column;
+      overflow:hidden;
+ }
+ .overlay {
+      position:fixed;
+      inset:0;
+      background: radial-gradient(circle at center, rgba(26, 11, 46, 0.8) 0%, #000000 100%);
+     display:flex;
+      align-items:center;
+      justify-content:center;
+      z-index:9999;
+      backdrop-filter: blur(10px);
+}
+ .box {
+      width: 380px;
+      height: 460px;
+      padding: 40px;
+      text-align:center;
+      background: var(--glass);
+      border:1px solid rgba(168, 85, 247, 0.3);
+      border-radius:24px;
+      box-shadow: 0 0 40px rgba(168, 85, 247, 0.15);
+      position:relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+}
+ .login-logo {
+     width: 100px; height: 100px;
+     margin-bottom: 25px;
+     border-radius: 50%;
+     border: 3px solid var(--accent);
+     box-shadow: 0 0 35px var(--accent-glow);
+     object-fit: cover;
+}
+ .input-field, select {
+      width:100%;
+      background: rgba(0, 0, 0, 0.5);
+      border:1px solid var(--border);
+      color:#fff;
+      padding:14px; margin-bottom:15px; border-radius:12px; outline:none;
+      box-sizing: border-box;
+}
+ select { appearance: none; cursor: pointer; }
+ select option { background-color: #05010a; color: #fff; }
+
+ .action-btn {
+      width:100%;
+      background: linear-gradient(90deg, #7c3aed, #a855f7, #7c3aed);
+      background-size: 200% auto;
+     color:#fff; border:none; padding:14px; font-weight:900;
+      cursor:pointer; border-radius:12px; transition: 0.3s;
+      text-transform: uppercase; letter-spacing: 2px;
+}
+ header {
+      height:65px; display:none; align-items:center;
+      justify-content:space-between; padding:0 25px;
+      border-bottom:1px solid var(--border);
+      background: rgba(13, 4, 29, 0.85); backdrop-filter: blur(10px);
+}
+ .logo-container { display:flex; align-items:center; gap:15px; position:relative; }
+.main-logo { height:45px; width:45px; cursor:pointer; border-radius:50%; border:2px solid var(--border); object-fit: cover; }
+ .dropdown {
+      position:absolute; top:60px; width:200px;
+      background: #120524; border:1px solid var(--accent);
+      display:none; flex-direction:column; z-index:1000;
+      border-radius:12px; overflow:hidden;
+     box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+}
+.left-drop { left:0; }
+.right-drop { right:0; }
+ .dropdown-item {
+      padding:12px 20px; cursor:pointer; border-bottom:1px solid rgba(61, 31, 124, 0.3);
+      font-size:13px; color: #ccc; transition: 0.2s; text-align: left;
+}
+.dropdown-item:hover { background:var(--accent); color: #fff; }
+
+ .main-layout {
+      flex:1;
+      display:none;
+      flex-direction: column;
+      width: 100%;
+      height: 100%;
+ }
+ .container { 
+      flex: 1;
+      width: 100%;
+      display: flex;
+ }
+ .editor-wrapper { 
+      display:flex; 
+      width:100%; 
+      height:100%; 
+      background: #05010a; 
+ }
+ textarea {
+      flex:1; background:var(--panel); color:#d4d4d4;
+      border:none; border-bottom:1px solid var(--border);
+      padding:20px; resize:none; outline:none;
+      font-family:monospace; font-size:15px;
+ }
+ #result { 
+      flex: 1;
+      width: 100%; 
+      border: none; 
+      background: #fff; 
+ }
+ .user-profile { display:flex; align-items:center; gap:12px; padding-left:20px; border-left:1px solid var(--border); }
+#avatar-preview { width:38px; height:38px; border-radius:50%; object-fit:cover; border:2px solid var(--accent); }
+</style>
+</head>
+<body>
+
+ <div class="overlay" id="loginOverlay">
+     <div class="box">
+         <img src="https://i.imgur.com/91g63dI.jpeg" class="login-logo">
+         <h2 style="margin-top:0;">NEXUS AUTH</h2>
+         <input id="userInput" class="input-field" placeholder="USERNAME">
+         <input id="passInput" type="password" class="input-field" placeholder="PASSWORD">
+         <button class="action-btn" onclick="login()">CONNECT</button>
+     </div>
+</div>
+
+ <div class="overlay" id="langOverlay" style="display:none">
+     <div class="box">
+         <img src="https://i.imgur.com/91g63dI.jpeg" class="login-logo">
+         <h2 style="margin-top:0;">ENVIRONMENT</h2>
+         <select id="langSelectBox">
+             <option value="html">HTML / CSS / JS</option>
+             <option value="Python">Python</option>
+             <option value="JavaScript">JavaScript</option>
+             <option value="Java">Java</option>
+             <option value="C">C</option>
+             <option value="C++">C++</option>
+             <option value="C#">C#</option>
+             <option value="PHP">PHP</option>
+             <option value="Go">Go</option>
+             <option value="Rust">Rust</option>
+             <option value="Swift">Swift</option>
+             <option value="Kotlin">Kotlin</option>
+             <option value="TypeScript">TypeScript</option>
+             <option value="Ruby">Ruby</option>
+             <option value="R">R</option>
+             <option value="MATLAB">MATLAB</option>
+             <option value="Dart">Dart</option>
+             <option value="Scala">Scala</option>
+             <option value="Objective-C">Objective-C</option>
+             <option value="Visual Basic .NET">Visual Basic .NET</option>
+             <option value="Assembly">Assembly</option>
+             <option value="Scratch">Scratch</option>
+             <option value="Lua">Lua</option>
+             <option value="Groovy">Groovy</option>
+             <option value="Perl">Perl</option>
+             <option value="Haskell">Haskell</option>
+             <option value="Julia">Julia</option>
+             <option value="Bash">Bash</option>
+             <option value="PowerShell">PowerShell</option>
+             <option value="Solidity">Solidity</option>
+             <option value="COBOL">COBOL</option>
+             <option value="Fortran">Fortran</option>
+             <option value="Prolog">Prolog</option>
+             <option value="Lisp">Lisp</option>
+             <option value="Scheme">Scheme</option>
+             <option value="F#">F#</option>
+             <option value="Elixir">Elixir</option>
+             <option value="Crystal">Crystal</option>
+             <option value="Nim">Nim</option>
+             <option value="OCaml">OCaml</option>
+             <option value="Apex">Apex</option>
+             <option value="Hack">Hack</option>
+             <option value="Smalltalk">Smalltalk</option>
+             <option value="ActionScript">ActionScript</option>
+             <option value="PostScript">PostScript</option>
+             <option value="Awk">Awk</option>
+             <option value="Tcl">Tcl</option>
+             <option value="Vala">Vala</option>
+             <option value="Red">Red</option>
+             <option value="Pony">Pony</option>
+             <option value="Ring">Ring</option>
+             <option value="FoxPro">FoxPro</option>
+             <option value="Chapel">Chapel</option>
+             <option value="D">D</option>
+             <option value="Mercury">Mercury</option>
+             <option value="Idris">Idris</option>
+             <option value="Zig">Zig</option>
+             <option value="Modula-2">Modula-2</option>
+             <option value="Ada">Ada</option>
+             <option value="Eiffel">Eiffel</option>
+             <option value="Io">Io</option>
+             <option value="Nemerle">Nemerle</option>
+             <option value="Janus">Janus</option>
+             <option value="OpenCL">OpenCL</option>
+             <option value="WebAssembly (Wasm)">WebAssembly (Wasm)</option>
+             <option value="GLSL">GLSL</option>
+             <option value="VHDL">VHDL</option>
+             <option value="Verilog">Verilog</option>
+             <option value="GDScript">GDScript</option>
+             <option value="Monkey C">Monkey C</option>
+             <option value="LiveScript">LiveScript</option>
+             <option value="Objective-C++">Objective-C++</option>
+             <option value="X++">X++</option>
+             <option value="Oz">Oz</option>
+             <option value="PostgresSQL">PostgresSQL</option>
+             <option value="PL/SQL">PL/SQL</option>
+             <option value="Q#">Q#</option>
+             <option value="Monkey">Monkey</option>
+             <option value="ColdFusion">ColdFusion</option>
+             <option value="GroovyScript">GroovyScript</option>
+             <option value="FoxBase">FoxBase</option>
+             <option value="RingLang">RingLang</option>
+             <option value="FreePascal">FreePascal</option>
+             <option value="Pascal">Pascal</option>
+             <option value="Delphi">Delphi</option>
+             <option value="Hackett">Hackett</option>
+             <option value="Alice">Alice</option>
+             <option value="Wolfram">Wolfram</option>
+             <option value="Rebol">Rebol</option>
+             <option value="Squirrel">Squirrel</option>
+             <option value="SuperCollider">SuperCollider</option>
+             <option value="Icon">Icon</option>
+             <option value="IoScript">IoScript</option>
+             <option value="Factor">Factor</option>
+             <option value="IoLang">IoLang</option>
+             <option value="Genie">Genie</option>
+             <option value="ChapelScript">ChapelScript</option>
+             <option value="KornShell">KornShell</option>
+             <option value="Fish">Fish</option>
+             <option value="XQuery">XQuery</option>
+             <option value="Forth">Forth</option>
+             <option value="Boo">Boo</option>
+             <option value="Harbour">Harbour</option>
+             <option value="OpenEdge ABL">OpenEdge ABL</option>
+             <option value="MonkeyTalk">MonkeyTalk</option>
+             <option value="IoTScript">IoTScript</option>
+             <option value="Seed7">Seed7</option>
+             <option value="Janet">Janet</option>
+             <option value="Falcon">Falcon</option>
+             <option value="RingScript">RingScript</option>
+             <option value="Whiley">Whiley</option>
+             <option value="MonkeyLang">MonkeyLang</option>
+             <option value="RedScript">RedScript</option>
+             <option value="Haxe">Haxe</option>
+             <option value="Pike">Pike</option>
+             <option value="Objective-Pascal">Objective-Pascal</option>
+             <option value="NetLogo">NetLogo</option>
+             <option value="MonkeyX">MonkeyX</option>
+             <option value="Gherkin">Gherkin</option>
+             <option value="MonkeyC">MonkeyC</option>
+             <option value="MonkeyScript">MonkeyScript</option>
+             <option value="Euphoria">Euphoria</option>
+             <option value="ChucK">ChucK</option>
+             <option value="PonyScript">PonyScript</option>
+             <option value="Futhark">Futhark</option>
+             <option value="ReasonML">ReasonML</option>
+             <option value="KRL">KRL</option>
+             <option value="Yorick">Yorick</option>
+             <option value="JScript">JScript</option>
+             <option value="PowerBuilder">PowerBuilder</option>
+             <option value="IoAssembly">IoAssembly</option>
+             <option value="AutoHotkey">AutoHotkey</option>
+             <option value="MonkeyLogic">MonkeyLogic</option>
+             <option value="X10">X10</option>
+             <option value="RingPlus">RingPlus</option>
+             <option value="UnrealScript">UnrealScript</option>
+             <option value="MonkeySharp">MonkeySharp</option>
+             <option value="OpenScript">OpenScript</option>
+             <option value="MonkeyLangX">MonkeyLangX</option>
+             <option value="JuliaScript">JuliaScript</option>
+             <option value="IoShell">IoShell</option>
+             <option value="MonkeyGo">MonkeyGo</option>
+             <option value="RedLang">RedLang</option>
+             <option value="LiveCode">LiveCode</option>
+             <option value="MonkeyLua">MonkeyLua</option>
+             <option value="MonkeyRust">MonkeyRust</option>
+             <option value="MonkeyPython">MonkeyPython</option>
+             <option value="MonkeyJS">MonkeyJS</option>
+             <option value="MonkeyC++">MonkeyC++</option>
+             <option value="MonkeyC#">MonkeyC#</option>
+             <option value="MonkeySwift">MonkeySwift</option>
+             <option value="MonkeyKotlin">MonkeyKotlin</option>
+             <option value="MonkeyDart">MonkeyDart</option>
+             <option value="MonkeyScala">MonkeyScala</option>
+             <option value="MonkeyRuby">MonkeyRuby</option>
+             <option value="MonkeyPHP">MonkeyPHP</option>
+             <option value="MonkeyR">MonkeyR</option>
+             <option value="MonkeyMATLAB">MonkeyMATLAB</option>
+             <option value="MonkeyHaskell">MonkeyHaskell</option>
+             <option value="MonkeyJulia">MonkeyJulia</option>
+             <option value="MonkeyZig">MonkeyZig</option>
+             <option value="MonkeyNim">MonkeyNim</option>
+             <option value="MonkeyCrystal">MonkeyCrystal</option>
+             <option value="MonkeyElixir">MonkeyElixir</option>
+             <option value="MonkeyOCaml">MonkeyOCaml</option>
+             <option value="MonkeyF#">MonkeyF#</option>
+             <option value="MonkeyProlog">MonkeyProlog</option>
+             <option value="MonkeyLisp">MonkeyLisp</option>
+             <option value="MonkeyScheme">MonkeyScheme</option>
+             <option value="MonkeyFortran">MonkeyFortran</option>
+             <option value="MonkeyCOBOL">MonkeyCOBOL</option>
+             <option value="MonkeyAda">MonkeyAda</option>
+             <option value="MonkeyVHDL">MonkeyVHDL</option>
+             <option value="MonkeyVerilog">MonkeyVerilog</option>
+             <option value="MonkeyGLSL">MonkeyGLSL</option>
+             <option value="MonkeyWasm">MonkeyWasm</option>
+             <option value="MonkeyAssembly">MonkeyAssembly</option>
+             <option value="MonkeyBash">MonkeyBash</option>
+             <option value="MonkeyPowerShell">MonkeyPowerShell</option>
+             <option value="MonkeyGroovy">MonkeyGroovy</option>
+             <option value="MonkeyPerl">MonkeyPerl</option>
+             <option value="MonkeyAwk">MonkeyAwk</option>
+             <option value="MonkeyTcl">MonkeyTcl</option>
+             <option value="MonkeyLuaX">MonkeyLuaX</option>
+             <option value="MonkeySmalltalk">MonkeySmalltalk</option>
+             <option value="MonkeyActionScript">MonkeyActionScript</option>
+             <option value="MonkeyPostScript">MonkeyPostScript</option>
+             <option value="MonkeyScratch">MonkeyScratch</option>
+             <option value="MonkeyGDScript">MonkeyGDScript</option>
+             <option value="MonkeySolidity">MonkeySolidity</option>
+             <option value="MonkeyQ#">MonkeyQ#</option>
+             <option value="MonkeyHack">MonkeyHack</option>
+             <option value="MonkeyFoxPro">MonkeyFoxPro</option>
+             <option value="MonkeyColdFusion">MonkeyColdFusion</option>
+             <option value="MonkeyRing">MonkeyRing</option>
+             <option value="MonkeyRed">MonkeyRed</option>
+             <option value="MonkeyPony">MonkeyPony</option>
+             <option value="MonkeyJanus">MonkeyJanus</option>
+             <option value="MonkeyOz">MonkeyOz</option>
+             <option value="MonkeyChapel">MonkeyChapel</option>
+             <option value="MonkeySeed">MonkeySeed</option>
+         </select>
+         <button class="action-btn" onclick="enterEditor()">INITIALIZE</button>
+     </div>
+</div>
+
+ <header id="mainHeader">
+     <div class="logo-container">
+         <img src="https://i.imgur.com/91g63dI.jpeg" class="main-logo" onclick="toggleMenu('logoMenu', event)">
+         <div class="dropdown left-drop" id="logoMenu">
+             <div class="dropdown-item" onclick="window.open('https://nxnxnx99.github.io/nx/', '_blank')">Support</div>
+             <div class="dropdown-item" onclick="window.open('https://nxnxnx99.github.io/nx/', '_blank')">About</div>
+             <div class="dropdown-item" onclick="changeLang()">Change Language</div>
+         </div>
+         <span id="envTitle" style="font-weight:bold; color:var(--accent-light);">NEXUS HUB</span>
+     </div>
+      <div style="display:flex; align-items:center; gap:15px;">
+         <div style="position:relative;">
+             <button class="action-btn" style="padding:5px 15px; background:none; border:1px solid var(--border); width:auto;" onclick="toggleMenu('mainMenu', event)">?</button>
+             <div class="dropdown right-drop" id="mainMenu">
+                 <div class="dropdown-item" onclick="document.getElementById('zipInput').click()">Host File (ZIP)</div>
+                 <div class="dropdown-item" onclick="exportProject()">Export ZIP</div>
+                 <div class="dropdown-item" onclick="cleanWorkspace()" style="color:#ff5555">Clean All</div>
+             </div>
+             <input type="file" id="zipInput" accept=".zip" style="display:none" onchange="hostZipFile(this)">
+         </div>
+         <div class="user-profile">
+             <img id="avatar-preview" src="https://i.imgur.com/91g63dI.jpeg">
+             <span id="displayUser" style="font-size:12px;">USER</span>
+         </div>
+     </div>
+</header>
+
+ <div class="main-layout" id="mainLayout">
+     <div class="container" id="editorContainer">
+         <div class="editor-wrapper">
+             <textarea id="code1" spellcheck="false" placeholder="Code 1"></textarea>
+             <textarea id="code2" spellcheck="false" placeholder="Code 2"></textarea>
+             <textarea id="code3" spellcheck="false" placeholder="Code 3"></textarea>
+         </div>
+     </div>
+     <iframe id="result"></iframe>
+ </div>
+
+ <script>
+const code1 = document.getElementById("code1"),
+      code2 = document.getElementById("code2"),
+      code3 = document.getElementById("code3"),
+      result = document.getElementById("result"),
+      mainLayout = document.getElementById("mainLayout");
+
+let currentLang = "html";
+
+ function login() {
+     const user = document.getElementById("userInput").value;
+     if(!user) return alert("Enter Username");
+     document.getElementById("displayUser").innerText = user.toUpperCase();
+     document.getElementById("loginOverlay").style.display = "none";
+     document.getElementById("langOverlay").style.display = "flex";
+}
+
+ function enterEditor() {
+     currentLang = document.getElementById("langSelectBox").value;
+     document.getElementById("langOverlay").style.display = "none";
+     document.getElementById("mainHeader").style.display = "flex";
+     mainLayout.style.display = "flex";
+     
+     document.getElementById("envTitle").innerText = "NEXUS // " + currentLang.toUpperCase();
+      if(currentLang === 'html') {
+         code1.style.display = code2.style.display = code3.style.display = "block";
+         code1.placeholder = "HTML"; code2.placeholder = "CSS"; code3.placeholder = "JS";
+     } else {
+         code1.style.display = "block";
+         code2.style.display = code3.style.display = "none";
+         code1.placeholder = "Write " + currentLang + " code here...";
+     }
+     updatePreview();
+}
+
+ function toggleMenu(id, e) {
+     e.stopPropagation();
+     const menu = document.getElementById(id);
+     const isVisible = menu.style.display === "flex";
+     document.querySelectorAll('.dropdown').forEach(d => d.style.display = 'none');
+     menu.style.display = isVisible ? "none" : "flex";
+}
+
+ window.onclick = () => document.querySelectorAll('.dropdown').forEach(d => d.style.display = 'none');
+
+ function changeLang() {
+     document.getElementById("langOverlay").style.display = "flex";
+}
+
+ function cleanWorkspace() {
+     if(confirm("Wipe all code?")) {
+         code1.value = code2.value = code3.value = "";
+         updatePreview();
+     }
+}
+
+ function exportProject() {
+     const zip = new JSZip();
+     if(currentLang === 'html') {
+         zip.file("index.html", code1.value);
+         zip.file("style.css", code2.value);
+         zip.file("script.js", code3.value);
+     } else {
+         let ext = currentLang.toLowerCase().replace(/[^a-z0-9]/g, '');
+         zip.file("main." + (ext || 'txt'), code1.value);
+     }
+     zip.generateAsync({type:"blob"}).then(content => {
+         saveAs(content, "Nexus_" + currentLang.replace(/ /g,'_') + ".zip");
+     });
+}
+
+ // ???? ?? ????? ????????? ???????
+ async function hostZipFile(input) {
+     const file = input.files[0];
+     if(!file) return;
+     
+     try {
+         const zip = await JSZip.loadAsync(file);
+         let fileList = Object.keys(zip.files);
+         
+         if(currentLang === 'html') {
+             // ????? ?? ????? ????? ???? ??? ZIP
+             for (let fileName of fileList) {
+                 const content = await zip.files[fileName].async("string");
+                 if(fileName.endsWith(".html")) code1.value = content;
+                 else if(fileName.endsWith(".css")) code2.value = content;
+                 else if(fileName.endsWith(".js")) code3.value = content;
+             }
+         } else {
+             // ??? ??? ????? ?? ??? ??? ??? ????
+             for (let fileName of fileList) {
+                 if(!zip.files[fileName].dir) {
+                     code1.value = await zip.files[fileName].async("string");
+                     break;
+                 }
+             }
+         }
+         updatePreview();
+         alert("Files unarchived successfully!");
+     } catch (e) {
+         alert("Error reading ZIP file.");
+     }
+     input.value = ""; 
+}
+
+ function updatePreview() {
+     if(currentLang === 'html') {
+        const content = `<html><head><style>${code2.value}</style></head><body style="background:#fff; color:#000;">${code1.value}<script>${code3.value}<\/script></body></html>`;
+        result.srcdoc = content;
+     } else {
+         const consoleLook = `
+            <html>
+            <body style="background-color:#0c0c0c; color:#0f0; font-family:monospace; padding:15px; margin:0;">
+                <div style="border-bottom:1px solid #333; padding-bottom:5px; margin-bottom:10px; color:#fff;">
+                    NEXUS CONSOLE [${currentLang}] - Build Ready
+                </div>
+                <span>user@nexus:~$ ./run_project</span><br>
+                <span style="color:#aaa;">Unarchiving... </span><span style="color:#0f0;">DONE</span><br>
+                <span>> Result:</span><br>
+                <pre style="color: #fff;">${code1.value.substring(0, 500)}...</pre>
+            </body>
+            </html>
+         `;
+         result.srcdoc = consoleLook;
+     }
+}
+ [code1, code2, code3].forEach(t => t.oninput = updatePreview);
+</script>
+</body>
+</html>
