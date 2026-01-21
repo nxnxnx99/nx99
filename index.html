@@ -57,6 +57,15 @@ body {
       justify-content: center;
       align-items: center;
 }
+/* Responsive Box for Mobile */
+@media (max-width: 500px) {
+    .box {
+        width: 90%;
+        height: auto;
+        min-height: 400px;
+    }
+}
+
  .login-logo {
      width: 100px; height: 100px;
      margin-bottom: 25px;
@@ -139,11 +148,41 @@ body {
  }
  .user-profile { display:flex; align-items:center; gap:12px; padding-left:20px; border-left:1px solid var(--border); }
 #avatar-preview { width:38px; height:38px; border-radius:50%; object-fit:cover; border:2px solid var(--accent); }
+
+/* --- Mobile Specific Styles --- */
+body.mobile-mode .editor-wrapper {
+    flex-direction: column;
+}
+body.mobile-mode .container {
+    flex-direction: column;
+}
+body.mobile-mode #result {
+    height: 40%; /* Preview takes less space on mobile */
+    flex: none;
+    border-top: 2px solid var(--accent);
+}
+body.mobile-mode header {
+    padding: 0 10px;
+}
+body.mobile-mode #envTitle {
+    display: none; /* Hide title on very small screens to save space */
+}
 </style>
 </head>
 <body>
 
- <div class="overlay" id="loginOverlay">
+ <div class="overlay" id="deviceOverlay">
+    <div class="box">
+        <img src="https://i.imgur.com/91g63dI.jpeg" class="login-logo">
+        <h2 style="margin-top:0;">SELECT DEVICE</h2>
+        <p style="color:#aaa; font-size:13px; margin-bottom:20px;">CHOOSE YOUR PLATFORM FOR BEST EXPERIENCE</p>
+        
+        <button class="action-btn" onclick="selectDevice('pc')" style="margin-bottom:15px;">DESKTOP / PC</button>
+        <button class="action-btn" onclick="selectDevice('mobile')">SMARTPHONE</button>
+    </div>
+ </div>
+
+ <div class="overlay" id="loginOverlay" style="display:none">
      <div class="box">
          <img src="https://i.imgur.com/91g63dI.jpeg" class="login-logo">
          <h2 style="margin-top:0;">NEXUS AUTH</h2>
@@ -375,20 +414,20 @@ body {
          <span id="envTitle" style="font-weight:bold; color:var(--accent-light);">NEXUS HUB</span>
      </div>
       <div style="display:flex; align-items:center; gap:15px;">
-         <div style="position:relative;">
-             <button class="action-btn" style="padding:5px 15px; background:none; border:1px solid var(--border); width:auto;" onclick="toggleMenu('mainMenu', event)">?</button>
-             <div class="dropdown right-drop" id="mainMenu">
-                 <div class="dropdown-item" onclick="document.getElementById('zipInput').click()">Host File (ZIP)</div>
-                 <div class="dropdown-item" onclick="exportProject()">Export ZIP</div>
-                 <div class="dropdown-item" onclick="cleanWorkspace()" style="color:#ff5555">Clean All</div>
-             </div>
-             <input type="file" id="zipInput" accept=".zip" style="display:none" onchange="hostZipFile(this)">
-         </div>
-         <div class="user-profile">
-             <img id="avatar-preview" src="https://i.imgur.com/91g63dI.jpeg">
-             <span id="displayUser" style="font-size:12px;">USER</span>
-         </div>
-     </div>
+          <div style="position:relative;">
+              <button class="action-btn" style="padding:5px 15px; background:none; border:1px solid var(--border); width:auto;" onclick="toggleMenu('mainMenu', event)">?</button>
+              <div class="dropdown right-drop" id="mainMenu">
+                  <div class="dropdown-item" onclick="document.getElementById('zipInput').click()">Host File (ZIP)</div>
+                  <div class="dropdown-item" onclick="exportProject()">Export ZIP</div>
+                  <div class="dropdown-item" onclick="cleanWorkspace()" style="color:#ff5555">Clean All</div>
+              </div>
+              <input type="file" id="zipInput" accept=".zip" style="display:none" onchange="hostZipFile(this)">
+          </div>
+          <div class="user-profile">
+              <img id="avatar-preview" src="https://i.imgur.com/91g63dI.jpeg">
+              <span id="displayUser" style="font-size:12px;">USER</span>
+          </div>
+      </div>
 </header>
 
  <div class="main-layout" id="mainLayout">
@@ -411,122 +450,130 @@ const code1 = document.getElementById("code1"),
 
 let currentLang = "html";
 
+// دالة اختيار الجهاز
+function selectDevice(type) {
+    if (type === 'mobile') {
+        document.body.classList.add('mobile-mode');
+    } else {
+        document.body.classList.remove('mobile-mode');
+    }
+    document.getElementById("deviceOverlay").style.display = "none";
+    document.getElementById("loginOverlay").style.display = "flex";
+}
+
  function login() {
-     const user = document.getElementById("userInput").value;
-     if(!user) return alert("Enter Username");
-     document.getElementById("displayUser").innerText = user.toUpperCase();
-     document.getElementById("loginOverlay").style.display = "none";
-     document.getElementById("langOverlay").style.display = "flex";
+      const user = document.getElementById("userInput").value;
+      if(!user) return alert("Enter Username");
+      document.getElementById("displayUser").innerText = user.toUpperCase();
+      document.getElementById("loginOverlay").style.display = "none";
+      document.getElementById("langOverlay").style.display = "flex";
 }
 
  function enterEditor() {
-     currentLang = document.getElementById("langSelectBox").value;
-     document.getElementById("langOverlay").style.display = "none";
-     document.getElementById("mainHeader").style.display = "flex";
-     mainLayout.style.display = "flex";
-     
-     document.getElementById("envTitle").innerText = "NEXUS // " + currentLang.toUpperCase();
-      if(currentLang === 'html') {
-         code1.style.display = code2.style.display = code3.style.display = "block";
-         code1.placeholder = "HTML"; code2.placeholder = "CSS"; code3.placeholder = "JS";
-     } else {
-         code1.style.display = "block";
-         code2.style.display = code3.style.display = "none";
-         code1.placeholder = "Write " + currentLang + " code here...";
-     }
-     updatePreview();
+      currentLang = document.getElementById("langSelectBox").value;
+      document.getElementById("langOverlay").style.display = "none";
+      document.getElementById("mainHeader").style.display = "flex";
+      mainLayout.style.display = "flex";
+      
+      document.getElementById("envTitle").innerText = "NEXUS // " + currentLang.toUpperCase();
+       if(currentLang === 'html') {
+          code1.style.display = code2.style.display = code3.style.display = "block";
+          code1.placeholder = "HTML"; code2.placeholder = "CSS"; code3.placeholder = "JS";
+       } else {
+          code1.style.display = "block";
+          code2.style.display = code3.style.display = "none";
+          code1.placeholder = "Write " + currentLang + " code here...";
+       }
+      updatePreview();
 }
 
  function toggleMenu(id, e) {
-     e.stopPropagation();
-     const menu = document.getElementById(id);
-     const isVisible = menu.style.display === "flex";
-     document.querySelectorAll('.dropdown').forEach(d => d.style.display = 'none');
-     menu.style.display = isVisible ? "none" : "flex";
+      e.stopPropagation();
+      const menu = document.getElementById(id);
+      const isVisible = menu.style.display === "flex";
+      document.querySelectorAll('.dropdown').forEach(d => d.style.display = 'none');
+      menu.style.display = isVisible ? "none" : "flex";
 }
 
  window.onclick = () => document.querySelectorAll('.dropdown').forEach(d => d.style.display = 'none');
 
  function changeLang() {
-     document.getElementById("langOverlay").style.display = "flex";
+      document.getElementById("langOverlay").style.display = "flex";
 }
 
  function cleanWorkspace() {
-     if(confirm("Wipe all code?")) {
-         code1.value = code2.value = code3.value = "";
-         updatePreview();
-     }
+      if(confirm("Wipe all code?")) {
+          code1.value = code2.value = code3.value = "";
+          updatePreview();
+      }
 }
 
  function exportProject() {
-     const zip = new JSZip();
-     if(currentLang === 'html') {
-         zip.file("index.html", code1.value);
-         zip.file("style.css", code2.value);
-         zip.file("script.js", code3.value);
-     } else {
-         let ext = currentLang.toLowerCase().replace(/[^a-z0-9]/g, '');
-         zip.file("main." + (ext || 'txt'), code1.value);
-     }
-     zip.generateAsync({type:"blob"}).then(content => {
-         saveAs(content, "Nexus_" + currentLang.replace(/ /g,'_') + ".zip");
-     });
+      const zip = new JSZip();
+      if(currentLang === 'html') {
+          zip.file("index.html", code1.value);
+          zip.file("style.css", code2.value);
+          zip.file("script.js", code3.value);
+      } else {
+          let ext = currentLang.toLowerCase().replace(/[^a-z0-9]/g, '');
+          zip.file("main." + (ext || 'txt'), code1.value);
+      }
+      zip.generateAsync({type:"blob"}).then(content => {
+          saveAs(content, "Nexus_" + currentLang.replace(/ /g,'_') + ".zip");
+      });
 }
 
- // ???? ?? ????? ????????? ???????
  async function hostZipFile(input) {
-     const file = input.files[0];
-     if(!file) return;
-     
-     try {
-         const zip = await JSZip.loadAsync(file);
-         let fileList = Object.keys(zip.files);
-         
-         if(currentLang === 'html') {
-             // ????? ?? ????? ????? ???? ??? ZIP
-             for (let fileName of fileList) {
-                 const content = await zip.files[fileName].async("string");
-                 if(fileName.endsWith(".html")) code1.value = content;
-                 else if(fileName.endsWith(".css")) code2.value = content;
-                 else if(fileName.endsWith(".js")) code3.value = content;
-             }
-         } else {
-             // ??? ??? ????? ?? ??? ??? ??? ????
-             for (let fileName of fileList) {
-                 if(!zip.files[fileName].dir) {
-                     code1.value = await zip.files[fileName].async("string");
-                     break;
-                 }
-             }
-         }
-         updatePreview();
-         alert("Files unarchived successfully!");
-     } catch (e) {
-         alert("Error reading ZIP file.");
-     }
-     input.value = ""; 
+      const file = input.files[0];
+      if(!file) return;
+      
+      try {
+          const zip = await JSZip.loadAsync(file);
+          let fileList = Object.keys(zip.files);
+          
+          if(currentLang === 'html') {
+              for (let fileName of fileList) {
+                  const content = await zip.files[fileName].async("string");
+                  if(fileName.endsWith(".html")) code1.value = content;
+                  else if(fileName.endsWith(".css")) code2.value = content;
+                  else if(fileName.endsWith(".js")) code3.value = content;
+              }
+          } else {
+              for (let fileName of fileList) {
+                  if(!zip.files[fileName].dir) {
+                      code1.value = await zip.files[fileName].async("string");
+                      break;
+                  }
+              }
+          }
+          updatePreview();
+          alert("Files unarchived successfully!");
+      } catch (e) {
+          alert("Error reading ZIP file.");
+      }
+      input.value = ""; 
 }
 
  function updatePreview() {
-     if(currentLang === 'html') {
-        const content = `<html><head><style>${code2.value}</style></head><body style="background:#fff; color:#000;">${code1.value}<script>${code3.value}<\/script></body></html>`;
-        result.srcdoc = content;
-     } else {
-         const consoleLook = `
-            <html>
-            <body style="background-color:#0c0c0c; color:#0f0; font-family:monospace; padding:15px; margin:0;">
-                <div style="border-bottom:1px solid #333; padding-bottom:5px; margin-bottom:10px; color:#fff;">
-                    NEXUS CONSOLE [${currentLang}] - Build Ready
-                </div>
-                <span>user@nexus:~$ ./run_project</span><br>
-                <span style="color:#aaa;">Unarchiving... </span><span style="color:#0f0;">DONE</span><br>
-                <span>> Result:</span><br>
-                <pre style="color: #fff;">${code1.value.substring(0, 500)}...</pre>
-            </body>
-            </html>
-         `;
-         result.srcdoc = consoleLook;
-     }
+      if(currentLang === 'html') {
+         const content = `<html><head><style>${code2.value}</style></head><body style="background:#fff; color:#000;">${code1.value}<script>${code3.value}<\/script></body></html>`;
+         result.srcdoc = content;
+      } else {
+          const consoleLook = `
+             <html>
+             <body style="background-color:#0c0c0c; color:#0f0; font-family:monospace; padding:15px; margin:0;">
+                 <div style="border-bottom:1px solid #333; padding-bottom:5px; margin-bottom:10px; color:#fff;">
+                     NEXUS CONSOLE [${currentLang}] - Build Ready
+                 </div>
+                 <span>user@nexus:~$ ./run_project</span><br>
+                 <span style="color:#aaa;">Unarchiving... </span><span style="color:#0f0;">DONE</span><br>
+                 <span>> Result:</span><br>
+                 <pre style="color: #fff;">${code1.value.substring(0, 500)}...</pre>
+             </body>
+             </html>
+          `;
+          result.srcdoc = consoleLook;
+      }
 }
  [code1, code2, code3].forEach(t => t.oninput = updatePreview);
 </script>
