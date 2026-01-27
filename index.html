@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Nexus VS - Ultimate Edition</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 <style>
@@ -20,23 +20,32 @@
 body {
       margin:0;
       background-color: var(--bg);
-     background-image:
+      background-image:
           linear-gradient(rgba(5, 1, 10, 0.9), rgba(5, 1, 10, 0.9)),
           linear-gradient(to right, rgba(61, 31, 124, 0.1) 1px, transparent 1px),
           linear-gradient(to bottom, rgba(61, 31, 124, 0.1) 1px, transparent 1px);
-     background-size: cover, 40px 40px;
-     color:var(--text);
+      background-size: cover, 40px 40px;
+      color:var(--text);
       font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      height:100vh;
+      /* FIX: Use dvh for mobile browsers and fallback to vh */
+      height: 100vh;
+      height: 100dvh; 
       display:flex;
       flex-direction:column;
       overflow:hidden;
  }
+ /* FIX: Allow scrolling on mobile when keyboard is up to prevent layout crash */
+ body.mobile-mode {
+     overflow-y: auto;
+     height: auto;
+     min-height: 100dvh;
+ }
+
  .overlay {
       position:fixed;
       inset:0;
       background: radial-gradient(circle at center, rgba(26, 11, 46, 0.8) 0%, #000000 100%);
-     display:flex;
+      display:flex;
       align-items:center;
       justify-content:center;
       z-index:9999;
@@ -60,19 +69,20 @@ body {
 /* Responsive Box for Mobile */
 @media (max-width: 500px) {
     .box {
-        width: 90%;
+        width: 85%;
         height: auto;
         min-height: 400px;
+        padding: 30px 20px;
     }
 }
 
  .login-logo {
-     width: 100px; height: 100px;
-     margin-bottom: 25px;
-     border-radius: 50%;
-     border: 3px solid var(--accent);
-     box-shadow: 0 0 35px var(--accent-glow);
-     object-fit: cover;
+      width: 100px; height: 100px;
+      margin-bottom: 25px;
+      border-radius: 50%;
+      border: 3px solid var(--accent);
+      box-shadow: 0 0 35px var(--accent-glow);
+      object-fit: cover;
 }
  .input-field, select {
       width:100%;
@@ -89,7 +99,7 @@ body {
       width:100%;
       background: linear-gradient(90deg, #7c3aed, #a855f7, #7c3aed);
       background-size: 200% auto;
-     color:#fff; border:none; padding:14px; font-weight:900;
+      color:#fff; border:none; padding:14px; font-weight:900;
       cursor:pointer; border-radius:12px; transition: 0.3s;
       text-transform: uppercase; letter-spacing: 2px;
 }
@@ -98,6 +108,7 @@ body {
       justify-content:space-between; padding:0 25px;
       border-bottom:1px solid var(--border);
       background: rgba(13, 4, 29, 0.85); backdrop-filter: blur(10px);
+      flex-shrink: 0; /* Prevent header from shrinking */
 }
  .logo-container { display:flex; align-items:center; gap:15px; position:relative; }
 .main-logo { height:45px; width:45px; cursor:pointer; border-radius:50%; border:2px solid var(--border); object-fit: cover; }
@@ -106,7 +117,7 @@ body {
       background: #120524; border:1px solid var(--accent);
       display:none; flex-direction:column; z-index:1000;
       border-radius:12px; overflow:hidden;
-     box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8);
 }
 .left-drop { left:0; }
 .right-drop { right:0; }
@@ -149,23 +160,33 @@ body {
  .user-profile { display:flex; align-items:center; gap:12px; padding-left:20px; border-left:1px solid var(--border); }
 #avatar-preview { width:38px; height:38px; border-radius:50%; object-fit:cover; border:2px solid var(--accent); }
 
-/* --- Mobile Specific Styles --- */
+/* --- Mobile Specific Styles (Fixed) --- */
 body.mobile-mode .editor-wrapper {
     flex-direction: column;
+    /* FIX: Allow editor to push down instead of being crushed */
+    height: auto; 
+    min-height: 60vh; 
 }
 body.mobile-mode .container {
     flex-direction: column;
+    flex: none; /* Don't force flex ratio on mobile */
+    height: auto;
+}
+body.mobile-mode textarea {
+    /* FIX: Minimum height so keyboard doesn't hide text */
+    min-height: 200px; 
 }
 body.mobile-mode #result {
-    height: 40%; /* Preview takes less space on mobile */
+    height: 400px; /* Fixed height for preview on mobile */
     flex: none;
     border-top: 2px solid var(--accent);
 }
 body.mobile-mode header {
     padding: 0 10px;
+    position: sticky; top: 0; z-index: 50; /* Keep header visible */
 }
 body.mobile-mode #envTitle {
-    display: none; /* Hide title on very small screens to save space */
+    display: none; 
 }
 </style>
 </head>
@@ -560,18 +581,18 @@ function selectDevice(type) {
          result.srcdoc = content;
       } else {
           const consoleLook = `
-             <html>
-             <body style="background-color:#0c0c0c; color:#0f0; font-family:monospace; padding:15px; margin:0;">
-                 <div style="border-bottom:1px solid #333; padding-bottom:5px; margin-bottom:10px; color:#fff;">
-                     NEXUS CONSOLE [${currentLang}] - Build Ready
-                 </div>
-                 <span>user@nexus:~$ ./run_project</span><br>
-                 <span style="color:#aaa;">Unarchiving... </span><span style="color:#0f0;">DONE</span><br>
-                 <span>> Result:</span><br>
-                 <pre style="color: #fff;">${code1.value.substring(0, 500)}...</pre>
-             </body>
-             </html>
-          `;
+              <html>
+              <body style="background-color:#0c0c0c; color:#0f0; font-family:monospace; padding:15px; margin:0;">
+                  <div style="border-bottom:1px solid #333; padding-bottom:5px; margin-bottom:10px; color:#fff;">
+                      NEXUS CONSOLE [${currentLang}] - Build Ready
+                  </div>
+                  <span>user@nexus:~$ ./run_project</span><br>
+                  <span style="color:#aaa;">Unarchiving... </span><span style="color:#0f0;">DONE</span><br>
+                  <span>> Result:</span><br>
+                  <pre style="color: #fff;">${code1.value.substring(0, 500)}...</pre>
+              </body>
+              </html>
+           `;
           result.srcdoc = consoleLook;
       }
 }
